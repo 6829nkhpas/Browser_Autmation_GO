@@ -6,9 +6,8 @@ import (
 
 // OverridePermissions overrides the Permissions API to avoid detection
 func OverridePermissions(page *rod.Page) error {
-	// Simplified - just return prompt for all permissions
 	script := `
-		const originalQuery = window.navigator.permissions.query;
+		var originalQuery = window.navigator.permissions.query;
 		window.navigator.permissions.query = function(params) {
 			return Promise.resolve({ state: 'prompt', onchange: null });
 		};

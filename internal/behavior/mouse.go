@@ -1,10 +1,9 @@
 package behavior
 
 import (
-	"crypto/rand"
 	"fmt"
 	"math"
-	"math/big"
+	"math/rand"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -80,12 +79,12 @@ func MoveMouse(page *rod.Page, targetX, targetY float64) error {
 		// Add micro-corrections: small random offsets simulate human hand tremor
 		// Range: ±1 pixel creates realistic jitter without visible shakiness
 		// NOTE: This uses math/rand.Float64(), which needs math/rand import.
-		x += (math.Rand().Float64() - 0.5) * 2
-		y += (math.Rand().Float64() - 0.5) * 2
+		x += (rand.Float64() - 0.5) * 2
+		y += (rand.Float64() - 0.5) * 2
 
 		// Execute mouse movement to calculated position
-		// Third parameter (1) indicates number of steps for Rod's internal interpolation
-		if err := page.Mouse.Move(x, y, 1); err != nil {
+		// Parameter (1) indicates number of steps for Rod's internal interpolation
+		if err := page.Mouse.MoveLinear(proto.Point{X: x, Y: y}, 1); err != nil {
 			return err
 		}
 
@@ -177,11 +176,5 @@ func GetRandomFloat(min, max float64) float64 {
 		return min
 	}
 
-	rang := max - min
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(rang*1000)))
-	if err != nil {
-		return min
-	}
-
-	return min + float64(n.Int64())/1000.0
+	return min + rand.Float64()*(max-min)
 }

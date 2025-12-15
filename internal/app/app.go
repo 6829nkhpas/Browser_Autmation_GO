@@ -158,7 +158,10 @@ func (a *App) Run() error {
 	a.logger.Info("Successfully logged in to LinkedIn")
 
 	// Main automation loop would go here
-	// For now, just wait
+	// For demonstration, see internal/app/example.go for a complete automation flow
+	// To run the example: uncomment the line below
+	// return a.runExampleAutomation()
+
 	a.logger.Info("Bot is running. Press Ctrl+C to stop.")
 
 	// Keep running until interrupted

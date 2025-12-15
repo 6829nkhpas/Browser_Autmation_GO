@@ -149,16 +149,12 @@ func (a *App) Run() error {
 		a.Shutdown()
 	}()
 
-	// Login
-	a.logger.Info("Attempting login...")
-	if err := a.auth.Login(a.ctx); err != nil {
-		return fmt.Errorf("login failed: %w", err)
-	}
+	a.logger.Info("=== MANUAL LOGIN DEMO MODE ===")
+	a.logger.Info("Opening LinkedIn - please login manually in the browser")
+	a.logger.Info("After login, the automation will demonstrate all features")
 
-	a.logger.Info("Successfully logged in to LinkedIn")
-
-	// Run the example automation flow
-	return a.runExampleAutomation()
+	// Open LinkedIn and let user login manually
+	return a.runManualLoginDemo()
 }
 
 // Shutdown gracefully shuts down the application

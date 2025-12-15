@@ -32,36 +32,7 @@ func New(cfg StealthConfig) *Stealth {
 
 // Apply applies all enabled stealth techniques to the page
 func (s *Stealth) Apply(page *rod.Page) error {
-	if s.config.DisableWebDriver {
-		if err := DisableWebDriver(page); err != nil {
-			return err
-		}
-	}
-
-	if s.config.SpoofLocale {
-		if err := SpoofLocale(page, s.config.Timezone, s.config.Language); err != nil {
-			return err
-		}
-	}
-
-	if s.config.OverridePermissions {
-		if err := OverridePermissions(page); err != nil {
-			return err
-		}
-	}
-
-	// Canvas and WebGL still disabled - will fix if needed
-	// if s.config.RandomizeCanvas {
-	// 	if err := RandomizeCanvas(page); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// if s.config.RandomizeWebGL {
-	// 	if err := RandomizeWebGL(page); err != nil {
-	// 		return err
-	// 	}
-	// }
-
+	// ALL stealth temporarily disabled for manual demo mode
+	// The user will manually login, so detection isn't an issue
 	return nil
 }

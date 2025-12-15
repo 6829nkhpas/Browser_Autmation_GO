@@ -190,3 +190,8 @@ func (e *Engine) HasElement(selector string) bool {
 	has, _, err := e.page.Has(selector)
 	return err == nil && has
 }
+
+// Page returns the underlying rod.Page for direct access when needed
+func (e *Engine) Page() *rod.Page {
+	return e.page
+}

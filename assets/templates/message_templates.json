@@ -1,0 +1,22 @@
+[
+  {
+    "name": "connection_request",
+    "templates": [
+      "Hi {name}, I came across your profile and was impressed by your work in {field}. I'd love to connect!",
+      "Hello {name}, I noticed we share an interest in {field}. Would be great to connect and exchange insights!",
+      "Hi {name}, I'm reaching out to fellow professionals in {field}. Would you be open to connecting?",
+      "Hello {name}, your experience at {company} caught my attention. I'd appreciate the opportunity to connect!",
+      "Hi {name}, I'd love to add you to my professional network. Your background in {field} is impressive!"
+    ]
+  },
+  {
+    "name": "follow_up_message",
+    "templates": [
+      "Thanks for connecting, {name}! I'm excited to learn more about your work in {field}.",
+      "Hi {name}, great to connect! I'd love to hear about your experience at {company}.",
+      "Thanks for accepting my connection request, {name}! Looking forward to staying in touch.",
+      "Hi {name}, appreciate you connecting! Would be great to learn from your expertise in {field}.",
+      "Hello {name}, thanks for connecting! I'm always interested in connecting with professionals in {field}."
+    ]
+  }
+]

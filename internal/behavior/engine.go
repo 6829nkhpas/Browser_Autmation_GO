@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/proto"
 )
 
 // Engine implements human-like browser behavior
@@ -70,7 +71,7 @@ func (e *Engine) Click(selector string) error {
 	WaitHuman(200, 500)
 
 	// Perform click
-	if err := elem.Click(rod.Button("left"), 1); err != nil {
+	if err := elem.Click(proto.InputMouseButtonLeft, 1); err != nil {
 		return fmt.Errorf("click failed: %w", err)
 	}
 
@@ -89,7 +90,7 @@ func (e *Engine) Type(selector, text string) error {
 	}
 
 	// Click on the element first to focus
-	if err := elem.Click(rod.Button("left"), 1); err != nil {
+	if err := elem.Click(proto.InputMouseButtonLeft, 1); err != nil {
 		return fmt.Errorf("click to focus failed: %w", err)
 	}
 
@@ -116,14 +117,20 @@ func (e *Engine) Hover(selector string) error {
 	}
 
 	// Get element position
-	box, err := elem.Box()
+	shape, err := elem.Shape()
 	if err != nil {
-		return fmt.Errorf("failed to get element box: %w", err)
+		return fmt.Errorf("failed to get element shape: %w", err)
 	}
 
-	// Calculate center of element
-	targetX := box.X + box.Width/2
-	targetY := box.Y + box.Height/2
+	// Get bounding box from shape
+	if len(shape.Quads) == 0 {
+		return fmt.Errorf("element has no quads")
+	}
+
+	// Calculate center from first quad
+	quad := shape.Quads[0]
+	targetX := (quad[0] + quad[2]) / 2
+	targetY := (quad[1] + quad[5]) / 2
 
 	// Move mouse with Bézier curve
 	if err := MoveMouse(e.page, targetX, targetY); err != nil {

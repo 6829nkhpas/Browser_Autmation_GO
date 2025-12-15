@@ -39,5 +39,6 @@ func SpoofLocale(page *rod.Page, timezone, language string) error {
 		});
 	`
 
-	return page.Eval(script).Error
+	_, err := page.Eval(script)
+	return err
 }

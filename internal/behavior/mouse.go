@@ -52,10 +52,7 @@ func MoveMouse(page *rod.Page, targetX, targetY float64) error {
 		point.Y += GetRandomFloat(-2, 2)
 
 		// Move mouse to this point
-		err := page.Mouse.Move(point.X, point.Y, 1)
-		if err != nil {
-			return fmt.Errorf("mouse move failed: %w", err)
-		}
+		page.Mouse.MustMoveTo(point.X, point.Y)
 
 		// Variable speed - faster in middle, slower at start/end
 		delay := calculateMouseSpeed(t)
@@ -63,10 +60,7 @@ func MoveMouse(page *rod.Page, targetX, targetY float64) error {
 	}
 
 	// Final position adjustment
-	err := page.Mouse.Move(targetX, targetY, 1)
-	if err != nil {
-		return fmt.Errorf("final mouse move failed: %w", err)
-	}
+	page.Mouse.MustMoveTo(targetX, targetY)
 
 	return nil
 }

@@ -98,7 +98,7 @@ func (cs *CookieStore) Load(page *rod.Page) error {
 	}
 
 	// Convert to proto cookies and set in browser
-	protoCookies := make([]*proto.NetworkCookie, 0, len(storeCookies))
+	protoCookies := make([]*proto.NetworkCookieParam, 0, len(storeCookies))
 	now := time.Now()
 
 	for _, c := range storeCookies {
@@ -115,7 +115,7 @@ func (cs *CookieStore) Load(page *rod.Page) error {
 			sameSite = proto.NetworkCookieSameSiteLax
 		}
 
-		protoCookies = append(protoCookies, &proto.NetworkCookie{
+		protoCookies = append(protoCookies, &proto.NetworkCookieParam{
 			Name:     c.Name,
 			Value:    c.Value,
 			Domain:   c.Domain,

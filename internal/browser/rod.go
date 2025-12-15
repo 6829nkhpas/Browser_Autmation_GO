@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/proto"
 )
 
 // Rod represents a Rod browser client
@@ -36,9 +37,6 @@ func NewRod(ctx context.Context, cfg RodConfig) (*Rod, error) {
 		Context(ctx)
 
 	// Connect to browser with timeout
-	connectCtx, cancel := context.WithTimeout(ctx, cfg.Timeout)
-	defer cancel()
-
 	if err := browser.Connect(); err != nil {
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
@@ -61,7 +59,7 @@ func (r *Rod) Browser() *rod.Browser {
 
 // NewPage creates a new page with the given context
 func (r *Rod) NewPage(ctx context.Context) (*rod.Page, error) {
-	page, err := r.browser.Page(rod.DefaultDevice)
+	page, err := r.browser.Page(proto.TargetCreateTarget{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create page: %w", err)
 	}

@@ -102,7 +102,7 @@ func (a *App) Initialize() error {
 	// Apply stealth techniques
 	a.logger.Info("Applying stealth techniques...")
 	userAgent := stealth.GetUserAgent("", a.config.Stealth.RandomUserAgent)
-	viewport := stealth.GetViewport(a.config.Browser.Width, a.config.Browser.Height, false)
+	_ = stealth.GetViewport(a.config.Browser.Width, a.config.Browser.Height, false) // viewport for reference
 
 	a.stealth = stealth.New(stealth.StealthConfig{
 		DisableWebDriver:    true,

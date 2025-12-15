@@ -38,5 +38,6 @@ func OverridePermissions(page *rod.Page) error {
 		};
 	`
 
-	return page.Eval(script).Error
+	_, err := page.Eval(script)
+	return err
 }

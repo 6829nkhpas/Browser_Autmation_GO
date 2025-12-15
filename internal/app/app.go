@@ -160,7 +160,7 @@ func (a *App) Run() error {
 	// Main automation loop would go here
 	// For demonstration, see internal/app/example.go for a complete automation flow
 	// To run the example: uncomment the line below
-	// return a.runExampleAutomation()
+	 return a.runExampleAutomation()
 
 	a.logger.Info("Bot is running. Press Ctrl+C to stop.")
 

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config holds all application configuration
@@ -68,9 +70,9 @@ type BusinessHoursConfig struct {
 
 // StealthConfig holds stealth/anti-detection settings
 type StealthConfig struct {
-	Timezone         string
-	Language         string
-	RandomUserAgent  bool
+	Timezone        string
+	Language        string
+	RandomUserAgent bool
 }
 
 // PathsConfig holds file paths
@@ -82,8 +84,8 @@ type PathsConfig struct {
 
 // SearchConfig holds search settings
 type SearchConfig struct {
-	MaxPages        int
-	ResultsPerPage  int
+	MaxPages       int
+	ResultsPerPage int
 }
 
 // MessageConfig holds message settings
@@ -103,6 +105,9 @@ type BreakConfig struct {
 
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
+	// Load .env file if it exists (ignore error if not found)
+	_ = godotenv.Load()
+
 	cfg := &Config{
 		LinkedIn: LinkedInConfig{
 			Email:    getEnv("LINKEDIN_EMAIL", ""),

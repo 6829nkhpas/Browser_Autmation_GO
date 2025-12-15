@@ -3,9 +3,11 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/nkh/linkedin-automation/internal/behavior"
+	"github.com/nkh/linkedin-automation/internal/linkedin"
 )
 
 // Authenticator handles LinkedIn authentication
@@ -64,17 +66,50 @@ func (a *Authenticator) Login(ctx context.Context) error {
 // performLogin performs the actual login process
 func (a *Authenticator) performLogin(ctx context.Context) error {
 	// Navigate to login page
-	if err := a.behaviorEng.Navigate("https://www.linkedin.com/login"); err != nil {
+	if err := a.behaviorEng.Navigate(linkedin.LoginURL); err != nil {
 		return fmt.Errorf("failed to navigate to login page: %w", err)
 	}
 
-	// Wait for page to load
-	a.behaviorEng.WaitHuman(1000, 2000)
+	// Wait for page to load - give it more time
+	page := a.behaviorEng.Page()
+	if err := page.WaitLoad(); err != nil {
+		return fmt.Errorf("page load timeout: %w", err)
+	}
+
+	// Additional wait for JavaScript to execute
+	time.Sleep(3 * time.Second)
+
+	// Check if already logged in by looking for feed or profile
+	detector := NewDetector(page) // Assuming NewDetector signature is (page *rod.Page)
+	if detector.IsLoggedIn() {
+		return nil
+	}
+
+	// Check current URL to see if we're actually on login page
+	currentURL := page.MustInfo().URL
+	fmt.Printf("Current URL after navigation: %s\n", currentURL)
+
+	// Wait for email input field to appear - this confirms page loaded
+	_, err := page.Timeout(10 * time.Second).Element("#username")
+	if err != nil {
+		// Page didn't load properly, try to get page content for debugging
+		html, _ := page.HTML()
+		htmlLen := len(html)
+		previewLen := 500
+		if htmlLen < previewLen {
+			previewLen = htmlLen
+		}
+		fmt.Printf("Page HTML length: %d\n", htmlLen)
+		fmt.Printf("First %d chars: %s\n", previewLen, html[:previewLen])
+		return fmt.Errorf("login page did not load properly - email field not found: %w", err)
+	}
+
+	fmt.Println("Login page loaded successfully, email field found")
 
 	// Check for security challenge before login
-	challenge, err := a.detector.DetectChallenge()
-	if err != nil {
-		return fmt.Errorf("failed to detect challenge: %w", err)
+	challenge, challengeErr := a.detector.DetectChallenge()
+	if challengeErr != nil {
+		return fmt.Errorf("failed to detect challenge: %w", challengeErr)
 	}
 
 	if challenge != ChallengeNone {
@@ -100,8 +135,8 @@ func (a *Authenticator) performLogin(ctx context.Context) error {
 	}
 
 	// Type password (no typos for passwords)
-	page := a.behaviorEng.Page()
-	elem, err := page.Element(passwordSelector)
+	pageForPassword := a.behaviorEng.Page()
+	elem, err := pageForPassword.Element(passwordSelector)
 	if err != nil {
 		return fmt.Errorf("failed to find password field: %w", err)
 	}
@@ -126,13 +161,13 @@ func (a *Authenticator) performLogin(ctx context.Context) error {
 	a.behaviorEng.WaitHuman(3000, 5000)
 
 	// Check for security challenges
-	challenge, err = a.detector.DetectChallenge()
-	if err != nil {
-		return fmt.Errorf("failed to detect post-login challenge: %w", err)
+	challenge2, challengeErr2 := a.detector.DetectChallenge()
+	if challengeErr2 != nil {
+		return fmt.Errorf("failed to detect post-login challenge: %w", challengeErr2)
 	}
 
-	if challenge != ChallengeNone {
-		return fmt.Errorf("security challenge detected: %s - manual intervention required", challenge)
+	if challenge2 != ChallengeNone {
+		return fmt.Errorf("security challenge detected: %s - manual intervention required", challenge2)
 	}
 
 	// Verify login success

@@ -35,12 +35,29 @@ func LaunchChrome(ctx context.Context, cfg ChromeConfig) (*Chrome, error) {
 		}
 	}
 
-	// Find or download browser binary
-	path := launcher.NewBrowser().MustGet()
+	// For WSL: Windows Chrome .exe doesn't work with remote debugging from Linux
+	// Let Rod download Linux Chromium instead - it works properly in WSL
 
-	// Create launcher with the found browser path
-	l := launcher.New().
-		Bin(path).
+	// Try to find Linux Chrome/Chromium
+	systemChrome := ""
+	systemChrome, _ = exec.LookPath("google-chrome")
+	if systemChrome == "" {
+		systemChrome, _ = exec.LookPath("google-chrome-stable")
+	}
+	if systemChrome == "" {
+		systemChrome, _ = exec.LookPath("chromium")
+	}
+	if systemChrome == "" {
+		systemChrome, _ = exec.LookPath("chromium-browser")
+	}
+
+	// Create launcher - if no Linux Chrome found, Rod will download Chromium
+	l := launcher.New()
+	if systemChrome != "" {
+		l = l.Bin(systemChrome)
+	}
+
+	l = l.
 		Headless(cfg.Headless).
 		Set("disable-blink-features", "AutomationControlled").
 		Set("disable-features", "IsolateOrigins,site-per-process").

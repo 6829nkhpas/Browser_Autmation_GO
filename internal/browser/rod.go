@@ -57,15 +57,17 @@ func (r *Rod) Browser() *rod.Browser {
 	return r.browser
 }
 
-// NewPage creates a new page with the given context
+// NewPage creates a new page in the browser
 func (r *Rod) NewPage(ctx context.Context) (*rod.Page, error) {
+	// Create a new page using Rod's default method
+	// This ensures all browser features work normally
 	page, err := r.browser.Page(proto.TargetCreateTarget{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create page: %w", err)
 	}
 
-	// Set context for the page
-	page = page.Context(ctx)
+	// Set a reasonable timeout
+	page = page.Timeout(30 * time.Second)
 
 	// Store reference to current page
 	r.page = page

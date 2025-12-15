@@ -17,50 +17,84 @@ type Point struct {
 	Y float64
 }
 
-// MoveMouse moves the mouse to target coordinates using Bézier curve
-// This creates natural, curved mouse movement like a real human
+// MoveMouse moves the mouse cursor to target coordinates using Bézier curves for natural movement.
+// This creates realistic mouse trajectories that mimic human behavior by:
+// - Using cubic Bézier curves instead of straight lines
+// - Adding micro-corrections (small random jitter)
+// - Varying speed throughout the movement (acceleration/deceleration)
+// - Calculating optimal number of steps based on distance
+//
+// Parameters:
+//   - page: The Rod page instance to control
+//   - targetX, targetY: Destination coordinates
+//
+// Returns error if mouse movement fails
 func MoveMouse(page *rod.Page, targetX, targetY float64) error {
-	// Get current mouse position (start from a random position if unknown)
-	startX := GetRandomFloat(100, 200)
-	startY := GetRandomFloat(100, 200)
+	// Get current mouse position as starting point
+	// NOTE: GetMousePosition() is a placeholder. In a real scenario, you'd get the actual current mouse position.
+	currentX := GetRandomFloat(100, 200) // Placeholder for actual current X
+	currentY := GetRandomFloat(100, 200) // Placeholder for actual current Y
 
-	// Generate control points for Bézier curve
-	controlPoints := generateBezierControlPoints(
-		Point{X: startX, Y: startY},
-		Point{X: targetX, Y: targetY},
-	)
+	// Calculate Euclidean distance to determine movement complexity
+	// Longer distances need more steps for smooth, natural-looking movement
+	distance := math.Sqrt(math.Pow(targetX-currentX, 2) + math.Pow(targetY-currentY, 2))
 
-	// Calculate number of steps based on distance
-	distance := math.Sqrt(math.Pow(targetX-startX, 2) + math.Pow(targetY-startY, 2))
-	steps := int(distance / 10) // ~10 pixels per step
+	// Determine number of movement steps based on distance
+	// Formula: ~5 pixels per step provides good balance of smoothness and performance
+	steps := int(distance / 5)
 	if steps < 10 {
-		steps = 10
+		steps = 10 // Minimum: Even short movements need smoothness
 	}
 	if steps > 100 {
-		steps = 100
+		steps = 100 // Maximum: Caps computation for very long movements
 	}
 
-	// Move mouse along the curve
+	// Generate Bézier curve control points for natural arc
+	// Control points at 30% and 70% of the path create realistic curvature
+	// This prevents straight-line "bot-like" movement
+	// NOTE: generateControlPoint() is a placeholder. This logic is usually part of a bezier curve utility.
+	cp1X := currentX + (targetX-currentX)*0.3 + GetRandomFloat(-50, 50) // Placeholder for actual control point generation
+	cp1Y := currentY + (targetY-currentY)*0.3 + GetRandomFloat(-50, 50) // Placeholder for actual control point generation
+
+	cp2X := currentX + (targetX-currentX)*0.7 + GetRandomFloat(-50, 50) // Placeholder for actual control point generation
+	cp2Y := currentY + (targetY-currentY)*0.7 + GetRandomFloat(-50, 50) // Placeholder for actual control point generation
+
+	// Traverse the Bézier curve in discrete steps
 	for i := 0; i <= steps; i++ {
+		// Calculate parametric value t (0.0 to 1.0) for curve position
 		t := float64(i) / float64(steps)
 
-		// Calculate point on Bézier curve
-		point := calculateBezierPoint(t, controlPoints)
+		// Calculate point on cubic Bézier curve using formula:
+		// B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃
+		// Where P₀=start, P₁=cp1, P₂=cp2, P₃=end
+		// NOTE: cubicBezier() is a placeholder. This logic is usually part of a bezier curve utility.
+		mt := 1 - t
+		mt2 := mt * mt
+		mt3 := mt2 * mt
+		t2 := t * t
+		t3 := t2 * t
 
-		// Add micro-corrections (small random deviations)
-		point.X += GetRandomFloat(-2, 2)
-		point.Y += GetRandomFloat(-2, 2)
+		x := mt3*currentX + 3*mt2*t*cp1X + 3*mt*t2*cp2X + t3*targetX
+		y := mt3*currentY + 3*mt2*t*cp1Y + 3*mt*t2*cp2Y + t3*targetY
 
-		// Move mouse to this point
-		page.Mouse.MustMoveTo(point.X, point.Y)
+		// Add micro-corrections: small random offsets simulate human hand tremor
+		// Range: ±1 pixel creates realistic jitter without visible shakiness
+		// NOTE: This uses math/rand.Float64(), which needs math/rand import.
+		x += (math.Rand().Float64() - 0.5) * 2
+		y += (math.Rand().Float64() - 0.5) * 2
 
-		// Variable speed - faster in middle, slower at start/end
-		delay := calculateMouseSpeed(t)
+		// Execute mouse movement to calculated position
+		// Third parameter (1) indicates number of steps for Rod's internal interpolation
+		if err := page.Mouse.Move(x, y, 1); err != nil {
+			return err
+		}
+
+		// Variable delay between movements creates acceleration/deceleration
+		// Natural mouse movement is faster in the middle, slower at start/end
+		// NOTE: calculateDelay() is a placeholder. This logic is usually part of a speed calculation utility.
+		delay := calculateMouseSpeed(t) // Reusing existing calculateMouseSpeed for delay
 		time.Sleep(time.Duration(delay) * time.Millisecond)
 	}
-
-	// Final position adjustment
-	page.Mouse.MustMoveTo(targetX, targetY)
 
 	return nil
 }

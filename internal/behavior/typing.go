@@ -15,29 +15,43 @@ import (
 // - Occasional typos with corrections
 // - Thinking pauses at punctuation
 // - Realistic WPM (40-80)
+// TypeHumanLike simulates realistic human typing behavior with natural imperfections.
+// This creates authentic typing patterns that avoid bot detection by:
+// - Varying keystroke intervals (humans don't type at constant speed)
+// - Introducing occasional typos with corrections (5% error rate)
+// - Using keyboard proximity for realistic mistakes
+// - Adding thinking pauses at natural points (word boundaries, punctuation)
+//
+// Parameters:
+//   - elem: The input element to type into
+//   - text: The string to type
+//
+// Returns error if typing fails
 func TypeHumanLike(elem *rod.Element, text string) error {
-	runes := []rune(text)
+	// Process each character with realistic timing and error patterns
+	for i, char := range text {
+		// Simulate natural typing errors (5% probability)
+		// Humans make mistakes, especially when typing quickly
+		if shouldMakeTypo() && i < len(text)-1 { // Ensure there's a next character to type after typo
+			// Generate a typo based on keyboard proximity
+			// E.g., 'e' might become 'r' or 'w' (neighboring keys on QWERTY)
+			typo := getRandomTypo(char)
 
-	for i := 0; i < len(runes); i++ {
-		char := runes[i]
-
-		// Occasional typo (5% chance)
-		if shouldMakeTypo() && i < len(runes)-1 {
-			// Type wrong character
-			wrongChar := getRandomTypo(char)
-			if err := typeChar(elem, wrongChar); err != nil {
+			// Type the wrong character first
+			if err := typeChar(elem, typo); err != nil {
 				return err
 			}
 
-			// Short pause to "notice" the typo
-			WaitHuman(100, 300)
+			// Pause before noticing the mistake (200-500ms - realistic detection time)
+			WaitHuman(200, 500)
 
-			// Backspace to delete typo
-			if err := elem.Input(string(rune(8))); err != nil {
+			// Correct the typo with backspace
+			if err := elem.Input("\b"); err != nil { // \b is the backspace character
 				return fmt.Errorf("backspace failed: %w", err)
 			}
 
-			WaitHuman(50, 150)
+			// Brief pause after correction (100-200ms - common typing pattern)
+			WaitHuman(100, 200)
 		}
 
 		// Type the correct character
@@ -45,8 +59,19 @@ func TypeHumanLike(elem *rod.Element, text string) error {
 			return err
 		}
 
-		// Variable delay between characters
-		delay := getTypingDelay(char, i, len(runes))
+		// Calculate variable typing speed that mimics human rhythm
+		// Factors: position in text, character type, fatigue simulation
+		baseDelay := getTypingDelay(char, i, len(text))
+
+		// Add random jitter (±25ms) to prevent constant-interval detection
+		// Humans never type with perfectly regular timing
+		jitter := GetRandomInRange(-25, 25) // Using existing helper for random range
+		delay := baseDelay + jitter
+		if delay < 0 { // Ensure delay is not negative
+			delay = 0
+		}
+
+		// Wait before next keystroke
 		time.Sleep(time.Duration(delay) * time.Millisecond)
 	}
 

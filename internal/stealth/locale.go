@@ -13,8 +13,14 @@ func SpoofLocale(page *rod.Page, timezone, language string) error {
 		language = "en-US"
 	}
 
-	script := `
-		// Override timezone
+	// Extract base language code
+	langCode := language
+	if len(language) >= 2 {
+		langCode = language[:2]
+	}
+
+	script := `(function() {
+		//Override timezone
 		Object.defineProperty(Intl.DateTimeFormat.prototype, 'resolvedOptions', {
 			value: function() {
 				return {
@@ -35,9 +41,9 @@ func SpoofLocale(page *rod.Page, timezone, language string) error {
 		});
 
 		Object.defineProperty(navigator, 'languages', {
-			get: () => ['` + language + `', '` + language[:2] + `']
+			get: () => ['` + language + `', '` + langCode + `']
 		});
-	`
+	})()`
 
 	_, err := page.Eval(script)
 	return err

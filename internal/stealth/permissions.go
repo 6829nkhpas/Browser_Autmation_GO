@@ -6,35 +6,11 @@ import (
 
 // OverridePermissions overrides the Permissions API to avoid detection
 func OverridePermissions(page *rod.Page) error {
+	// Simplified - just return prompt for all permissions
 	script := `
-		// Override permissions query
 		const originalQuery = window.navigator.permissions.query;
-		
-		window.navigator.permissions.query = function(parameters) {
-			// Return sensible defaults for common permissions
-			if (parameters.name === 'notifications') {
-				return Promise.resolve({
-					state: 'prompt',
-					onchange: null
-				});
-			}
-			
-			if (parameters.name === 'geolocation') {
-				return Promise.resolve({
-					state: 'prompt',
-					onchange: null
-				});
-			}
-			
-			if (parameters.name === 'camera' || parameters.name === 'microphone') {
-				return Promise.resolve({
-					state: 'prompt',
-					onchange: null
-				});
-			}
-			
-			// For other permissions, use original query
-			return originalQuery(parameters);
+		window.navigator.permissions.query = function(params) {
+			return Promise.resolve({ state: 'prompt', onchange: null });
 		};
 	`
 

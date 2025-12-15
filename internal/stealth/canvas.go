@@ -13,42 +13,39 @@ func RandomizeCanvas(page *rod.Page) error {
 	// Generate a small random noise value for this session
 	noise := getCanvasNoise()
 
-	script := `
-		(function() {
-			const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-			const originalToBlob = HTMLCanvasElement.prototype.toBlob;
-			const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+	script := `(function() {
+		const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+		const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+		
+		const noise = ` + noise + `;
+		
+		// Override toDataURL
+		HTMLCanvasElement.prototype.toDataURL = function() {
+			const context = this.getContext('2d');
+			const imageData = context.getImageData(0, 0, this.width, this.height);
 			
-			const noise = ` + noise + `;
+			// Add subtle noise to image data
+			for (let i = 0; i < imageData.data.length; i += 4) {
+				imageData.data[i] = imageData.data[i] + noise;
+				imageData.data[i + 1] = imageData.data[i + 1] + noise;
+				imageData.data[i + 2] = imageData.data[i + 2] + noise;
+			}
 			
-			// Override toDataURL
-			HTMLCanvasElement.prototype.toDataURL = function() {
-				const context = this.getContext('2d');
-				const imageData = context.getImageData(0, 0, this.width, this.height);
-				
-				// Add subtle noise to image data
-				for (let i = 0; i < imageData.data.length; i += 4) {
-					imageData.data[i] = imageData.data[i] + noise; // R
-					imageData.data[i + 1] = imageData.data[i + 1] + noise; // G
-					imageData.data[i + 2] = imageData.data[i + 2] + noise; // B
-				}
-				
-				context.putImageData(imageData, 0, 0);
-				return originalToDataURL.apply(this, arguments);
-			};
-			
-			// Override getImageData to add consistent noise
-			CanvasRenderingContext2D.prototype.getImageData = function() {
-				const imageData = originalGetImageData.apply(this, arguments);
-				for (let i = 0; i < imageData.data.length; i += 4) {
-					imageData.data[i] = imageData.data[i] + noise;
-					imageData.data[i + 1] = imageData.data[i + 1] + noise;
-					imageData.data[i + 2] = imageData.data[i + 2] + noise;
-				}
-				return imageData;
-			};
-		})();
-	`
+			context.putImageData(imageData, 0, 0);
+			return originalToDataURL.apply(this, arguments);
+		};
+		
+		// Override getImageData to add consistent noise
+		CanvasRenderingContext2D.prototype.getImageData = function() {
+			const imageData = originalGetImageData.apply(this, arguments);
+			for (let i = 0; i < imageData.data.length; i += 4) {
+				imageData.data[i] = imageData.data[i] + noise;
+				imageData.data[i + 1] = imageData.data[i + 1] + noise;
+				imageData.data[i + 2] = imageData.data[i + 2] + noise;
+			}
+			return imageData;
+		};
+	})()`
 
 	_, err := page.Eval(script)
 	return err

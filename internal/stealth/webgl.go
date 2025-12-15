@@ -27,23 +27,20 @@ func RandomizeWebGL(page *rod.Page) error {
 	vendor := getRandomItem(vendors)
 	renderer := getRandomItem(renderers)
 
-	script := `
-		(function() {
-			const getParameter = WebGLRenderingContext.prototype.getParameter;
-			
-			WebGLRenderingContext.prototype.getParameter = function(parameter) {
-				// UNMASKED_VENDOR_WEBGL
-				if (parameter === 37445) {
-					return '` + vendor + `';
-				}
-				// UNMASKED_RENDERER_WEBGL
-				if (parameter === 37446) {
-					return '` + renderer + `';
-				}
-				return getParameter.apply(this, arguments);
-			};
-		})();
-	`
+	script := `(function() {
+		const getParameter = WebGLRenderingContext.prototype.getParameter;
+		WebGLRenderingContext.prototype.getParameter = function(parameter) {
+			// UNMASKED_VENDOR_WEBGL
+			if (parameter === 37445) {
+				return '` + vendor + `';
+			}
+			// UNMASKED_RENDERER_WEBGL
+			if (parameter === 37446) {
+				return '` + renderer + `';
+			}
+			return getParameter.apply(this, arguments);
+		};
+	})()`
 
 	_, err := page.Eval(script)
 	return err

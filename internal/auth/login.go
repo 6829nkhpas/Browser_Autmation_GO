@@ -89,19 +89,24 @@ func (a *Authenticator) performLogin(ctx context.Context) error {
 	currentURL := page.MustInfo().URL
 	fmt.Printf("Current URL after navigation: %s\n", currentURL)
 
-	// Wait for email input field to appear - this confirms page loaded
-	_, err := page.Timeout(10 * time.Second).Element("#username")
+	// Wait for email input field to appear - LinkedIn can be slow
+	// Increase timeout to 30 seconds
+	_, err := page.Timeout(30 * time.Second).Element("#username")
 	if err != nil {
-		// Page didn't load properly, try to get page content for debugging
-		html, _ := page.HTML()
-		htmlLen := len(html)
-		previewLen := 500
-		if htmlLen < previewLen {
-			previewLen = htmlLen
+		// Try alternative selectors
+		_, err2 := page.Timeout(10 * time.Second).Element("input[name='session_key']")
+		if err2 != nil {
+			// Page didn't load properly, try to get page content for debugging
+			html, _ := page.HTML()
+			htmlLen := len(html)
+			previewLen := 500
+			if htmlLen < previewLen {
+				previewLen = htmlLen
+			}
+			fmt.Printf("Page HTML length: %d\n", htmlLen)
+			fmt.Printf("First %d chars: %s\n", previewLen, html[:previewLen])
+			return fmt.Errorf("login page did not load properly - email field not found: %w", err)
 		}
-		fmt.Printf("Page HTML length: %d\n", htmlLen)
-		fmt.Printf("First %d chars: %s\n", previewLen, html[:previewLen])
-		return fmt.Errorf("login page did not load properly - email field not found: %w", err)
 	}
 
 	fmt.Println("Login page loaded successfully, email field found")

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/proto"
 )
 
 // Rod represents a Rod browser client
@@ -59,15 +58,12 @@ func (r *Rod) Browser() *rod.Browser {
 
 // NewPage creates a new page in the browser
 func (r *Rod) NewPage(ctx context.Context) (*rod.Page, error) {
-	// Create a new page using Rod's default method
-	// This ensures all browser features work normally
-	page, err := r.browser.Page(proto.TargetCreateTarget{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create page: %w", err)
-	}
+	// Use MustPage() instead of manual target creation
+	// This ensures the page is properly initialized without restrictions
+	page := r.browser.MustPage()
 
-	// Set a reasonable timeout
-	page = page.Timeout(30 * time.Second)
+	// Set a longer timeout for slow-loading pages (like LinkedIn)
+	page = page.Timeout(120 * time.Second)
 
 	// Store reference to current page
 	r.page = page

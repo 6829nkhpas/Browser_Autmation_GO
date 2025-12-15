@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/go-rod/rod/lib/launcher"
 )
@@ -20,11 +19,11 @@ type Chrome struct {
 
 // ChromeConfig holds Chrome configuration
 type ChromeConfig struct {
-	Headless       bool
-	Width          int
-	Height         int
-	UserDataDir    string
-	DisableWebSec  bool
+	Headless      bool
+	Width         int
+	Height        int
+	UserDataDir   string
+	DisableWebSec bool
 }
 
 // LaunchChrome launches a Chrome browser with remote debugging enabled
@@ -36,8 +35,12 @@ func LaunchChrome(ctx context.Context, cfg ChromeConfig) (*Chrome, error) {
 		}
 	}
 
-	// Create launcher
+	// Find or download browser binary
+	path := launcher.NewBrowser().MustGet()
+
+	// Create launcher with the found browser path
 	l := launcher.New().
+		Bin(path).
 		Headless(cfg.Headless).
 		Set("disable-blink-features", "AutomationControlled").
 		Set("disable-features", "IsolateOrigins,site-per-process").
@@ -76,12 +79,8 @@ func LaunchChrome(ctx context.Context, cfg ChromeConfig) (*Chrome, error) {
 		l = l.Set("disable-web-security")
 	}
 
-	// Create context with cancel
-	launchCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
 	// Launch browser
-	url, err := l.Context(launchCtx).Launch()
+	url, err := l.Launch()
 	if err != nil {
 		return nil, fmt.Errorf("failed to launch Chrome: %w", err)
 	}
@@ -104,7 +103,7 @@ func (c *Chrome) Close() error {
 	if c.cancel != nil {
 		c.cancel()
 	}
-	
+
 	if c.launcher != nil {
 		c.launcher.Cleanup()
 	}
